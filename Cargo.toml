@@ -1,0 +1,25 @@
+[package]
+name = "advent-2020"
+version = "0.1.0"
+authors = ["Tim Eggert <tim@elbart.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "advent-01"
+path = "src/01/main.rs"
+
+[[bin]]
+name = "advent-02"
+path = "src/02/main.rs"
+
+[[bin]]
+name = "advent-03"
+path = "src/03/main.rs"
+
+[[bin]]
+name = "advent-04"
+path = "src/04/main.rs"
+
+[dependencies]
