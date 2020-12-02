@@ -38,8 +38,6 @@ fn main() {
         } else if m2 == character {
             valid_pws += 1;
         }
-
-        println!("{}, {}", m1, m2);
     }
 
     println!("Valid password count: {}", valid_pws);

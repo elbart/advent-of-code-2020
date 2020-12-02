@@ -7,7 +7,6 @@ fn main() {
         let l = line.unwrap();
 
         let tokens: Vec<&str> = l.split(" ").collect();
-        println!("{:?}", tokens);
         assert_eq!(tokens.len(), 3);
 
         // min + max
