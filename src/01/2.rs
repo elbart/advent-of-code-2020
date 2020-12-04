@@ -2,7 +2,7 @@ use std::{fs::File, io::BufRead, io::BufReader};
 
 fn main() {
     let mut numbers = vec![];
-    let f = File::open("src/02/input.txt").unwrap();
+    let f = File::open("src/01/input.txt").unwrap();
     for line in BufReader::new(f).lines() {
         if let Ok(l) = line {
             numbers.push(l.parse::<usize>().unwrap())
