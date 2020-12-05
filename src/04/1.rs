@@ -29,9 +29,7 @@ fn main() {
         // we have a full passport string here, let's search for
         // minimum required fields
         if required
-            .iter()
-            .find(|&&field| !data.contains(&format!("{}:", field)))
-            .is_none()
+            .iter().all(|&field| data.contains(&format!("{}:", field)))
         {
             valid_passports += 1;
         }
