@@ -6,7 +6,6 @@ fn parse_data(raw: &str, low: char, max: usize) -> usize {
         if c == low {
             range = (range.0, ((range.1 + 1 - range.0) / 2) - 1 + range.0);
         } else {
-            // we assume there is no other character than 'F' or 'B'
             range = (((range.1 + 1 - range.0) / 2) + range.0, range.1);
         }
     }
