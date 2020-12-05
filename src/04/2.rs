@@ -4,17 +4,6 @@ use std::{convert::TryFrom, fs::File, io::BufRead, io::BufReader};
 extern crate lazy_static;
 
 #[derive(Debug)]
-struct Passport {
-    byr: usize,
-    iyr: usize,
-    eyr: usize,
-    hgt: Length,
-    hcl: HexColor,
-    ecl: NamedColor,
-    pid: &'static str,
-}
-
-#[derive(Debug)]
 enum Length {
     CM(usize),
     IN(usize),
@@ -95,68 +84,66 @@ impl TryFrom<&str> for NamedColor {
     }
 }
 
-impl Passport {
-    fn parse(value: String) -> Result<(), ()> {
-        let errors: Vec<Result<(&str, &str), (&str, &str)>> = value
-            .split(|c: char| c.is_whitespace())
-            .into_iter()
-            .map(|t| {
-                let kv_pair: Vec<&str> = t.split(":").collect();
-                assert_eq!(2, kv_pair.len());
-                let (key, value) = (kv_pair[0], kv_pair[1]);
+fn parse_passport(value: String) -> Result<(), ()> {
+    let errors: Vec<Result<(&str, &str), (&str, &str)>> = value
+        .split(|c: char| c.is_whitespace())
+        .into_iter()
+        .map(|t| {
+            let kv_pair: Vec<&str> = t.split(":").collect();
+            assert_eq!(2, kv_pair.len());
+            let (key, value) = (kv_pair[0], kv_pair[1]);
 
-                match key {
-                    "byr" => {
-                        let typed_value = value.parse::<usize>().unwrap();
-                        if typed_value < 1920 || typed_value > 2002 {
-                            return Err((key, value));
-                        }
+            match key {
+                "byr" => {
+                    let typed_value = value.parse::<usize>().unwrap();
+                    if typed_value < 1920 || typed_value > 2002 {
+                        return Err((key, value));
                     }
-                    "iyr" => {
-                        let typed_value = value.parse::<usize>().unwrap();
-                        if typed_value < 2010 || typed_value > 2020 {
-                            return Err((key, value));
-                        }
-                    }
-                    "eyr" => {
-                        let typed_value = value.parse::<usize>().unwrap();
-                        if typed_value < 2020 || typed_value > 2030 {
-                            return Err((key, value));
-                        }
-                    }
-                    "hgt" => Length::try_from(value)
-                        .map(|_x| ())
-                        .map_err(|_x| (key, value))?,
-                    "hcl" => HexColor::try_from(value)
-                        .map(|_x| ())
-                        .map_err(|_x| (key, value))?,
-                    "ecl" => NamedColor::try_from(value)
-                        .map(|_x| ())
-                        .map_err(|_x| (key, value))?,
-                    "pid" => {
-                        lazy_static! {
-                            static ref RE: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
-                        }
-                        if !RE.is_match(value) {
-                            return Err((key, value));
-                        }
-                    }
-                    _ => (),
                 }
+                "iyr" => {
+                    let typed_value = value.parse::<usize>().unwrap();
+                    if typed_value < 2010 || typed_value > 2020 {
+                        return Err((key, value));
+                    }
+                }
+                "eyr" => {
+                    let typed_value = value.parse::<usize>().unwrap();
+                    if typed_value < 2020 || typed_value > 2030 {
+                        return Err((key, value));
+                    }
+                }
+                "hgt" => Length::try_from(value)
+                    .map(|_x| ())
+                    .map_err(|_x| (key, value))?,
+                "hcl" => HexColor::try_from(value)
+                    .map(|_x| ())
+                    .map_err(|_x| (key, value))?,
+                "ecl" => NamedColor::try_from(value)
+                    .map(|_x| ())
+                    .map_err(|_x| (key, value))?,
+                "pid" => {
+                    lazy_static! {
+                        static ref RE: Regex = Regex::new(r"^[0-9]{9}$").unwrap();
+                    }
+                    if !RE.is_match(value) {
+                        return Err((key, value));
+                    }
+                }
+                _ => (),
+            }
 
-                Ok((key, value))
-            })
-            // .inspect(|v| println!("{:?}", v))
-            .filter(|v| v.is_err())
-            .collect();
+            Ok((key, value))
+        })
+        // .inspect(|v| println!("{:?}", v))
+        .filter(|v| v.is_err())
+        .collect();
 
-        if errors.len() > 0 {
-            // println!("{:?}", errors);
-            return Err(());
-        }
-
-        Ok(())
+    if errors.len() > 0 {
+        // println!("{:?}", errors);
+        return Err(());
     }
+
+    Ok(())
 }
 
 fn main() {
@@ -193,7 +180,7 @@ fn main() {
             .is_none()
         {
             // all required fields are existing, let's try to parse a Passport
-            if Passport::parse(data.trim_end().to_string()).is_ok() {
+            if parse_passport(data.trim_end().to_string()).is_ok() {
                 valid_passports += 1;
             }
         }
