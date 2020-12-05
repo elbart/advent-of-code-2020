@@ -36,7 +36,7 @@ fn main() {
 
     let mut it = seats.iter().peekable();
     while let Some(x) = it.next() {
-        if it.peek().unwrap().clone().clone() - x > 1 {
+        if **it.peek().unwrap() - x > 1 {
             println!("Your seat is: {}", x + 1);
             break;
         }
