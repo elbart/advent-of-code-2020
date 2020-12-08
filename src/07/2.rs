@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Debug, fs::File, io::BufRead, io::BufReader, rc::Rc};
+use std::{fs::File, io::BufRead, io::BufReader, rc::Rc};
 
 const COLOUR: &str = "shiny gold";
 
@@ -45,20 +45,25 @@ fn parse_line(line: String) -> Bag {
     c
 }
 
-fn count_subordinate_bags(bags: &Vec<Rc<Bag>>, bag: Rc<Bag>, multi: usize, bag_count: usize) -> usize {
+fn count_subordinate_bags(
+    bags: &Vec<Rc<Bag>>,
+    bag: Rc<Bag>,
+    multi: usize,
+    bag_count: usize,
+) -> usize {
     let mut bc = bag_count;
-    bc += multi;
-    println!("multi: {}", multi);
-    bag.contains.as_ref().unwrap_or(&Vec::new()).iter().for_each(|b| {
-        let real_bag = bags.iter().find(|&full_bag| {
-            b.colour == full_bag.colour
-        }).unwrap();
-        bc += b.count.unwrap() * multi;
-        println!("{:?}", real_bag);
-        println!("{}: {} * {}", b.colour, b.count.unwrap(), multi);
-        bc += count_subordinate_bags(bags, real_bag.clone(), b.count.unwrap() * multi, bag_count);
-    });
-
+    bag.contains
+        .as_ref()
+        .unwrap_or(&Vec::new())
+        .iter()
+        .for_each(|b| {
+            let real_bag = bags
+                .iter()
+                .find(|&full_bag| b.colour == full_bag.colour)
+                .unwrap();
+            bc = count_subordinate_bags(bags, real_bag.clone(), multi * b.count.unwrap(), bc);
+            bc += b.count.unwrap() * multi;
+        });
     bc
 }
 
@@ -77,8 +82,7 @@ fn main() {
         }
     }
 
-    // first pass (find the dependency tree)
     let bag_count = count_subordinate_bags(&bags, shiny_gold_bag.unwrap(), 1, 0);
 
-    println!("{}", bag_count);
+    println!("Subordinate bag count is: {}", bag_count);
 }
