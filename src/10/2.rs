@@ -5,23 +5,18 @@ fn find_valid_combinations(list: &[usize], computed: &mut HashMap<usize, u64>) -
         return 1;
     }
 
-    let mut it = list.iter();
     let mut combinations = 0;
-    let mut pos = 0;
-    let current = list[0];
-    it.next();
 
-    while let Some(&el) = it.next() {
-        if el - current > 3 {
+    for (idx, &el) in list[1..].iter().enumerate() {
+        // while let Some(&el) = it.next() {
+        if el - list[0] > 3 {
             break;
         }
-
-        pos += 1;
 
         combinations += match computed.get(&el) {
             Some(&x) => x,
             None => {
-                let combos = find_valid_combinations(&list[pos..], computed);
+                let combos = find_valid_combinations(&list[idx + 1..], computed);
                 computed.insert(el, combos);
                 combos
             }

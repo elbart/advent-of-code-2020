@@ -142,3 +142,5 @@ In total, this set of adapters can connect the charging outlet to your device in
 You glance back down at your bag and try to remember why you brought so many adapters; there must be more than a trillion valid ways to arrange them! Surely, there must be an efficient way to count the arrangements.
 
 What is the total number of distinct ways you can arrange the adapters to connect the charging outlet to your device?
+
+Your puzzle answer was 31581162962944.
