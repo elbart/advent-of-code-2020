@@ -46,7 +46,7 @@ struct Board {
     cols: usize,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 struct Neighbours {
     data: HashSet<(Point, SeatState)>,
 }
@@ -91,11 +91,8 @@ impl Board {
         let y_max = min(p.1 + 2, self.rows);
         let mut neighbours = HashSet::new();
 
-        // println!("xmin: {}, xmax: {}", x_min, x_max);
-        // println!("ymin: {}, ymax: {}", y_min, y_max);
         for y in y_min..y_max {
             for x in x_min..x_max {
-                // println!("x:{}, y:{}", x, y);
                 if p.0 == x && p.1 == y {
                     continue;
                 }
@@ -174,19 +171,9 @@ fn main() {
             board.insert(Point(x, y), s);
         }
     }
-    // println!("{:#?}", board);
 
     let mut current: Board = board.clone();
-    // println!("{}", board);
-    // println!("=============================================");
-    // current = board.compute_new_board();
-    // println!("{}", current);
-    // println!("=============================================");
-    // current = current.compute_new_board();
-    // println!("{}", current);
-    // println!("=============================================");
-    // current = current.compute_new_board();
-    // println!("{}", current);
+
     loop {
         let new = current.compute_new_board();
         if new == current {
@@ -222,8 +209,6 @@ mod tests {
             }
         }
 
-        // println!("{:?}", board.get_neighbours(&Point(0, 0)));
-        // println!("{:?}", board.get_neighbours(&Point(9, 9)));
         assert_eq!(3, board.get_neighbours(&Point(0, 0)).len());
         assert_eq!(5, board.get_neighbours(&Point(1, 0)).len());
         assert_eq!(8, board.get_neighbours(&Point(1, 1)).len());
