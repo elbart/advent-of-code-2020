@@ -54,8 +54,6 @@ impl Direction {
             final_deg = deg;
         }
 
-        println!("final: {}", final_deg);
-
         match final_deg {
             0 => Self::North,
             90 => Self::East,
