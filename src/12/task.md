@@ -69,3 +69,5 @@ For example, using the same instructions as above:
 After these operations, the ship's Manhattan distance from its starting position is 214 + 72 = 286.
 
 Figure out where the navigation instructions actually lead. What is the Manhattan distance between that location and the ship's starting position?
+
+Your puzzle answer was 145117.
