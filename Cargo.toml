@@ -101,6 +101,14 @@ path = "src/12/1.rs"
 name = "advent-12-2"
 path = "src/12/2.rs"
 
+[[bin]]
+name = "advent-13-1"
+path = "src/13/1.rs"
+
+[[bin]]
+name = "advent-13-2"
+path = "src/13/2.rs"
+
 [dependencies]
 regex = "1"
 lazy_static = "1"
