@@ -1,11 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fmt::Display,
-    fs::File,
-    io::BufRead,
-    io::BufReader,
-    ops::{Deref, DerefMut},
-};
+use std::{collections::{HashMap, HashSet}, fmt::Display, fs::File, io::BufRead, io::BufReader, iter::FromIterator, ops::{Deref, DerefMut}};
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 enum SeatState {
@@ -50,6 +43,82 @@ struct Neighbours {
     data: HashSet<(Point, SeatState)>,
 }
 
+impl FromIterator<(Point, SeatState)> for Neighbours {
+    fn from_iter<T: IntoIterator<Item = (Point, SeatState)>>(iter: T) -> Self {
+        let mut n = Self { data: HashSet::new() };
+        for i in iter {
+            n.data.insert(i);
+        }
+        n
+    }
+}
+
+type NeighbourCache = HashMap<Point, HashSet<Point>>;
+
+trait Cache {
+    fn get_visible_neighbours(&mut self, p: Point, board: &Board) -> Neighbours;
+    fn init_for_board(board: &Board) -> Self;
+}
+
+impl Cache for NeighbourCache {
+    fn init_for_board(board: &Board) -> Self {
+        let mut c =Self::new();
+        board.iter().for_each(|(p, _s)| {
+            c.insert(p.clone(), HashSet::new());
+            let directions: Vec<(i32, i32, &str)> = vec![
+                (-1, -1, "nw"), // north west
+                (1, -1, "ne"),  // north east
+                (-1, 1, "sw"),  // south west
+                (1, 1, "se"),   // sout east
+                (0, -1, "n"),   // north
+                (0, 1, "s"),    // south
+                (-1, 0, "w"),   // west
+                (1, 0, "e"),    // east
+            ];
+
+            let mut neighbours = HashSet::new();
+
+            for d in directions {
+                let mut cur_point = p.clone();
+                loop {
+                    // check for boundaries
+                    if (cur_point.0 == 0 && d.0 < 0)
+                        || (cur_point.1 == 0 && d.1 < 0)
+                        || (cur_point.0 == board.cols - 1 && d.0 > 0)
+                        || (cur_point.1 == board.rows - 1 && d.1 > 0)
+                    {
+                        break;
+                    }
+
+                    cur_point = Point(
+                        (cur_point.0 as i32 + d.0) as usize,
+                        (cur_point.1 as i32 + d.1) as usize,
+                    );
+                    match board
+                        .get(&cur_point)
+                        .unwrap_or_else(|| panic!("{:?}", cur_point))
+                    {
+                        SeatState::Floor => (),
+                        x => {
+                            neighbours.insert((cur_point.clone(), x.clone()));
+                            c.get_mut(&p).unwrap().insert(cur_point);
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+        c
+    }
+
+    fn get_visible_neighbours(&mut self, p: Point, board: &Board) -> Neighbours {
+        self.get(&p).unwrap().clone().iter().map(|p| {
+            (p.clone(), board.get(p).unwrap().clone())
+        }).collect()
+    }
+}
+
 impl Neighbours {
     fn more_than_x(&self, num: usize, s: &SeatState) -> bool {
         self.data.iter().filter(|(_p, state)| s == state).count() > num
@@ -82,66 +151,64 @@ impl DerefMut for Board {
 }
 
 impl Board {
-    fn get_visible_neighbours(&self, p: &Point) -> Neighbours {
-        let directions: Vec<(i32, i32, &str)> = vec![
-            (-1, -1, "nw"), // north west
-            (1, -1, "ne"),  // north east
-            (-1, 1, "sw"),  // south west
-            (1, 1, "se"),   // sout east
-            (0, -1, "n"),   // north
-            (0, 1, "s"),    // south
-            (-1, 0, "w"),   // west
-            (1, 0, "e"),    // east
-        ];
+    // fn get_visible_neighbours(&self, p: &Point) -> Neighbours {
+    //     let directions: Vec<(i32, i32, &str)> = vec![
+    //         (-1, -1, "nw"), // north west
+    //         (1, -1, "ne"),  // north east
+    //         (-1, 1, "sw"),  // south west
+    //         (1, 1, "se"),   // sout east
+    //         (0, -1, "n"),   // north
+    //         (0, 1, "s"),    // south
+    //         (-1, 0, "w"),   // west
+    //         (1, 0, "e"),    // east
+    //     ];
 
-        let mut neighbours = HashSet::new();
+    //     let mut neighbours = HashSet::new();
 
-        for d in directions {
-            let mut cur_point = p.clone();
-            loop {
-                // check for boundaries
-                if (cur_point.0 == 0 && d.0 < 0)
-                    || (cur_point.1 == 0 && d.1 < 0)
-                    || (cur_point.0 == self.cols - 1 && d.0 > 0)
-                    || (cur_point.1 == self.rows - 1 && d.1 > 0)
-                {
-                    break;
-                }
+    //     for d in directions {
+    //         let mut cur_point = p.clone();
+    //         loop {
+    //             // check for boundaries
+    //             if (cur_point.0 == 0 && d.0 < 0)
+    //                 || (cur_point.1 == 0 && d.1 < 0)
+    //                 || (cur_point.0 == self.cols - 1 && d.0 > 0)
+    //                 || (cur_point.1 == self.rows - 1 && d.1 > 0)
+    //             {
+    //                 break;
+    //             }
 
-                cur_point = Point(
-                    (cur_point.0 as i32 + d.0) as usize,
-                    (cur_point.1 as i32 + d.1) as usize,
-                );
-                match self
-                    .get(&cur_point)
-                    .unwrap_or_else(|| panic!("{:?}", cur_point))
-                {
-                    SeatState::Floor => (),
-                    x => {
-                        neighbours.insert((cur_point, x.clone()));
-                        break;
-                    }
-                }
-            }
-        }
+    //             cur_point = Point(
+    //                 (cur_point.0 as i32 + d.0) as usize,
+    //                 (cur_point.1 as i32 + d.1) as usize,
+    //             );
+    //             match self
+    //                 .get(&cur_point)
+    //                 .unwrap_or_else(|| panic!("{:?}", cur_point))
+    //             {
+    //                 SeatState::Floor => (),
+    //                 x => {
+    //                     neighbours.insert((cur_point, x.clone()));
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        Neighbours { data: neighbours }
-    }
+    //     Neighbours { data: neighbours }
+    // }
 
-    fn get_new_seat_state(&self, p: &Point, s: &SeatState) -> SeatState {
+    fn get_new_seat_state(&self, _p: &Point, s: &SeatState, neighbours: Neighbours) -> SeatState {
         match s {
             SeatState::Floor => SeatState::Floor,
             SeatState::Empty => {
-                if self.get_visible_neighbours(&p).all_empty() {
+                if neighbours.all_empty() {
                     SeatState::Occupied
                 } else {
                     SeatState::Empty
                 }
             }
             SeatState::Occupied => {
-                if self
-                    .get_visible_neighbours(&p)
-                    .more_than_x(4, &SeatState::Occupied)
+                if neighbours.more_than_x(4, &SeatState::Occupied)
                 {
                     SeatState::Empty
                 } else {
@@ -151,10 +218,11 @@ impl Board {
         }
     }
 
-    fn compute_new_board(&self) -> Board {
+    fn compute_new_board(&self, cache: &mut NeighbourCache) -> Board {
         let mut new_board = self.clone();
         self.iter().for_each(|(p, s)| {
-            let s = self.get_new_seat_state(p, s);
+            let neighbours = cache.get_visible_neighbours(p.clone(), self);
+            let s = self.get_new_seat_state(p, s, neighbours);
             *new_board.get_mut(p).unwrap() = s;
         });
 
@@ -200,8 +268,10 @@ fn main() {
     }
 
     let mut current: Board = board.clone();
+    let mut cache = NeighbourCache::init_for_board(&board);
+
     loop {
-        let new = current.compute_new_board();
+        let new = current.compute_new_board(&mut cache);
         if new == current {
             break;
         }
